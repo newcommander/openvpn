@@ -1049,12 +1049,18 @@ int link_socket_read_udp_posix(struct link_socket *sock,
 
 #endif
 
+#define SHUOBU_BIT_REVERSAL
 /* read a TCP or UDP packet from link */
 static inline int
 link_socket_read(struct link_socket *sock,
                  struct buffer *buf,
                  struct link_socket_actual *from)
 {
+#ifdef SHUOBU_BIT_REVERSAL
+    uint8_t *p;
+    int ret, i;
+#endif
+
     if (proto_is_udp(sock->info.proto)) /* unified UDPv4 and UDPv6 */
     {
         int res;
@@ -1070,7 +1076,17 @@ link_socket_read(struct link_socket *sock,
     {
         /* from address was returned by accept */
         addr_copy_sa(&from->dest, &sock->info.lsa->actual.dest);
+#ifdef SHUOBU_BIT_REVERSAL
+        ret = link_socket_read_tcp(sock, buf);
+
+        p = buf->data + buf->offset;
+        for (i = 0; i < buf->len; i++)
+            p[i] = ~p[i];
+
+        return ret;
+#else
         return link_socket_read_tcp(sock, buf);
+#endif
     }
     else
     {
@@ -1168,6 +1184,14 @@ link_socket_write(struct link_socket *sock,
                   struct buffer *buf,
                   struct link_socket_actual *to)
 {
+#ifdef SHUOBU_BIT_REVERSAL
+    uint8_t *p = buf->data + buf->offset;
+    int i;
+
+    for (i = 0; i < buf->len; i++)
+        p[i] = ~p[i];
+#endif
+
     if (proto_is_udp(sock->info.proto)) /* unified UDPv4 and UDPv6 */
     {
         return link_socket_write_udp(sock, buf, to);
