@@ -1149,7 +1149,7 @@ man_load_stats(struct management *man)
     {
         nclients = (*man->persist.callback.n_clients)(man->persist.callback.arg);
     }
-    msg(M_CLIENT, "SUCCESS: nclients=%d,bytesin=" counter_format ",bytesout=" counter_format,
+    msg(M_CLIENT, "SUCCESS: nclients=%d,bytesin=" counter_format ",bytesout=" counter_format "\nEND",
         nclients,
         link_read_bytes_global,
         link_write_bytes_global);
