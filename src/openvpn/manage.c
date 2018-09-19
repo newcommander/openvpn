@@ -594,12 +594,12 @@ man_history(struct management *man,
     if (streq(parm, "on"))
     {
         *realtime = true;
-        msg(M_CLIENT, "SUCCESS: real-time %s notification set to ON", type);
+        msg(M_CLIENT, "SUCCESS: real-time %s notification set to ON\nEND", type);
     }
     else if (streq(parm, "off"))
     {
         *realtime = false;
-        msg(M_CLIENT, "SUCCESS: real-time %s notification set to OFF", type);
+        msg(M_CLIENT, "SUCCESS: real-time %s notification set to OFF\nEND", type);
     }
     else if (streq(parm, "all") || (n = atoi(parm)) > 0)
     {
@@ -620,7 +620,7 @@ man_history(struct management *man,
     }
     else
     {
-        msg(M_CLIENT, "ERROR: %s parameter must be 'on' or 'off' or some number n or 'all'", type);
+        msg(M_CLIENT, "ERROR: %s parameter must be 'on' or 'off' or some number n or 'all'\nEND", type);
     }
 
     gc_free(&gc);
@@ -2883,9 +2883,11 @@ management_connection_established(struct management *management,
                                   const struct env_set *es)
 {
     mdac->flags |= DAF_CONNECTION_ESTABLISHED;
-    msg(M_CLIENT, ">CLIENT:ESTABLISHED,%lu", mdac->cid);
-    man_output_extra_env(management, "CLIENT");
-    man_output_env(es, true, management->connection.env_filter_level, "CLIENT");
+    if (management->connection.log_realtime) {
+        msg(M_CLIENT, ">CLIENT:ESTABLISHED,%lu", mdac->cid);
+        man_output_extra_env(management, "CLIENT");
+        man_output_env(es, true, management->connection.env_filter_level, "CLIENT");
+    }
 }
 
 void
