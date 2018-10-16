@@ -42,6 +42,7 @@
 #include "ssl.h"
 #include "common.h"
 #include "manage.h"
+#include "openvpn.h"
 
 #include "memdbg.h"
 
@@ -61,6 +62,7 @@
 static const char blank_up[] = "[[BLANK]]";
 
 struct management *management; /* GLOBAL */
+struct context *g_context = NULL;
 
 /* static forward declarations */
 static void man_output_standalone(struct management *man, volatile int *signal_received);
@@ -124,7 +126,26 @@ man_help(void)
     msg(M_CLIENT, "username type u        : Enter username u for a queried OpenVPN username.");
     msg(M_CLIENT, "verb [n]               : Set log verbosity level to n, or show if n is absent.");
     msg(M_CLIENT, "version                : Show current version number.");
+    msg(M_CLIENT, "context-info           : Show instence context data.");
     msg(M_CLIENT, "END");
+}
+
+static void
+man_context_info()
+{
+    struct in_addr ia;
+
+    CLEAR(ia);
+    ia.s_addr = htonl(g_context->c1.tuntap->local);
+    msg(M_CLIENT, "ifconfig-local: %s", inet_ntoa(ia));
+
+    CLEAR(ia);
+    ia.s_addr = htonl(g_context->c1.tuntap->remote_netmask);
+    msg(M_CLIENT, "ifconfig-remote-netmask: %s", inet_ntoa(ia));
+
+    CLEAR(ia);
+    ia.s_addr = htonl(g_context->c1.tuntap->broadcast);
+    msg(M_CLIENT, "ifconfig-broadcast: %s", inet_ntoa(ia));
 }
 
 static const char *
@@ -1564,6 +1585,10 @@ man_dispatch_command(struct management *man, struct status_output *so, const cha
         }
     }
 #endif
+    else if (streq(p[0], "context-info"))
+    {
+        man_context_info();
+    }
     else
     {
         msg(M_CLIENT, "ERROR: unknown command, enter 'help' for more options");

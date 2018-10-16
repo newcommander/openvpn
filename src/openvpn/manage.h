@@ -328,6 +328,7 @@ struct management
 };
 
 extern struct management *management;
+extern struct context *g_context;
 
 struct user_pass;
 

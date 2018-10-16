@@ -3859,6 +3859,8 @@ init_management(struct context *c)
     if (!management)
     {
         management = management_init();
+        if (!g_context)
+            g_context = c;
     }
 }
 
