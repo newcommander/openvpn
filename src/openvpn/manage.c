@@ -133,19 +133,28 @@ man_help(void)
 static void
 man_context_info()
 {
-    struct in_addr ia;
+    struct tuntap *tt = g_context->c1.tuntap;
+    struct route_list *rl = g_context->c1.route_list;
+    struct route_ipv4 *r;
+    const char *network, *netmask, *gateway;
+    struct gc_arena gc;
 
-    CLEAR(ia);
-    ia.s_addr = htonl(g_context->c1.tuntap->local);
-    msg(M_CLIENT, "ifconfig-local: %s", inet_ntoa(ia));
+    gc_init(&gc);
 
-    CLEAR(ia);
-    ia.s_addr = htonl(g_context->c1.tuntap->remote_netmask);
-    msg(M_CLIENT, "ifconfig-remote-netmask: %s", inet_ntoa(ia));
+    msg(M_CLIENT, "ifconfig-local:%s", print_in_addr_t(tt->local, 0, &gc));
+    msg(M_CLIENT, "ifconfig-remote-netmask:%s", print_in_addr_t(tt->remote_netmask, 0, &gc));
+    msg(M_CLIENT, "ifconfig-broadcast:%s", print_in_addr_t(tt->broadcast, 0, &gc));
 
-    CLEAR(ia);
-    ia.s_addr = htonl(g_context->c1.tuntap->broadcast);
-    msg(M_CLIENT, "ifconfig-broadcast: %s", inet_ntoa(ia));
+    for (r = rl->routes; r; r = r->next) {
+        network = print_in_addr_t(r->network, 0, &gc);
+        netmask = print_in_addr_t(r->netmask, 0, &gc);
+        gateway = print_in_addr_t(r->gateway, 0, &gc);
+
+        msg(M_CLIENT, "route:network:%s,netmask:%s,gateway:%s", network, netmask, gateway);
+    }
+    msg(M_CLIENT, "END");
+
+    gc_free(&gc);
 }
 
 static const char *
